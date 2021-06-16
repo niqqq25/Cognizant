@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 
 namespace CognizantChallenge
 {
@@ -25,10 +26,16 @@ namespace CognizantChallenge
         {
             services.AddDbContext<AppDbContext>(options =>
             {
-                //options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-                var connectionString = Configuration.GetConnectionString("MacConnection");
-                var serverVersion = ServerVersion.AutoDetect(connectionString);
-                options.UseMySql(connectionString, serverVersion);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("LocalConnection"));
+                }
+                else
+                {
+                    var connectionString = Configuration.GetConnectionString("RemoteConnection");
+                    var serverVersion = ServerVersion.AutoDetect(connectionString);
+                    options.UseMySql(connectionString, serverVersion);
+                }
             });
 
             services.AddScoped<ITaskRepository, TaskRepository>();
